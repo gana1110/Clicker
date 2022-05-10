@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Clicker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="score" style="font-size: xxx-large;"></div>
+    <div id="content" style="width: 10%; height: 10%;">
+        <p id="textEn">Click here !</p>
+    </div>
+<script>
+
+    // Declare elements
+    let content = document.getElementById('content');
+    let textEn = document.getElementById('textEn');
+    let currentScore = document.getElementById('score');
+
+    // Declare Score
+    var score = (function() {
+        var privateScore = 0;
+        function changeBy(val) {
+            privateScore += val;
+        }
+        return {
+            increment: function() {
+            changeBy(1);
+            },
+            decrement: function() {
+            changeBy(-1);
+            },
+            value: function() {
+            return privateScore;
+            }
+        };   
+    })();
+
+    // Compteur
+    let compteur = 1000;
+    let interval = setInterval(lose, 1);
+
+    
+    function lose(){
+        compteur--;
+        console.log(compteur);
+        if (compteur <= 0){
+            clearInterval(interval);
+            console.log('perdu');
+            let scr = score.value();
+            console.log(scr);
+            for (let index = 0; index < scr; index++) {
+                    score.decrement();
+                    console.log('test');
+                }
+            document.getElementById('score').innerText = 'Score: '+ score.value();
+        }
+    }
+
+    // Place element
+    content.addEventListener('click', game);
+
+    function game(){
+        position();
+        changeColor();
+        score.increment();
+        document.getElementById('score').innerText = 'Score: '+ score.value();
+        clearInterval(interval);
+        compteur = 1000;
+        interval = setInterval(lose, 1);
+    }
+    //
+    function position () {
+        content.style.left = Math.floor(Math.random() * (100 - content.style.width.match(/(\d+)/)[0])  + content.style.width.match(/(\d+)/)[0] ) + '%';
+        content.style.top = Math.floor(Math.random() * (100 - content.style.height.match(/(\d+)/)[0])  + content.style.height.match(/(\d+)/)[0] ) + '%';
+        content.style.transform = 'translate(0, 0)';
+    }
+
+    function changeColor() {
+        textEn.style.color = randomColor();
+        currentScore.style.color = randomColor();
+        content.style.borderColor = randomColor();
+        document.body.style.backgroundColor = randomColor();
+    }
+
+    function randomColor(){
+        let red = Math.floor(Math.random() * 256);
+        let green = Math.floor(Math.random() * 256);
+        let blue = Math.floor(Math.random() * 256);
+        let rgbCode = 'rgb(' + red + ',' + green + ',' + blue + ')';
+        return rgbCode;
+    }
+
+</script>
+</body>
+</html>
