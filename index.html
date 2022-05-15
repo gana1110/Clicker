@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Clicker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="hash">
+        <span id="score" class='score' style="font-size: xxx-large;">Score: 0</span>
+        <span id="titleGame" style="font-size: xxx-large; color: white;" >Clicker</span>
+        <span id="bestScore" style="font-size: xxx-large;">Best Score: 0</span>
+    </div>
+    
+    <div>
+        <progress id='progress' value="100" max="100"></progress>
+    </div>
+
+    <div id="content" style="width: 10%; height: 10%;">
+        <p id="textEn">Click here !</p>
+    </div>
+<script>
+    //Test github
+    // Declare elements
+    let content = document.getElementById('content');
+    let textEn = document.getElementById('textEn');
+    let currentScore = document.getElementById('score');
+    let bestScore = 0;
+
+    // Initialize
+    changeColor();
+    document.getElementById('progress').value = 0;
+
+    // Declare Score
+    var score = (function() {
+        var privateScore = 0;
+        function changeBy(val) {
+            privateScore += val;
+        }
+        return {
+            increment: function() {
+            changeBy(1);
+            },
+            decrement: function() {
+            changeBy(-1);
+            },
+            value: function() {
+            return privateScore;
+            }
+        };   
+    })();
+
+    // Compteur
+    let initDifficulty = 7500; // each 2.5 second
+    let currentDifficulty = initDifficulty;
+
+    let interval = setInterval(lose, currentDifficulty);
+    let progress = setInterval(prgsDecr, currentDifficulty / 100);
+    
+    let randomNum = Math.floor(Math.random() * (3 - 1 + 1) + 1);
+    let addTime  = setInterval(winTime, initDifficulty * randomNum);
+    let addLose  = setInterval(gameOver, initDifficulty * randomNum);
+
+    function gameOver(){
+        if(score.value() != 0){
+            //Create malus
+            const malus = document.createElement("malus");
+            document.body.appendChild(malus);
+            malus.style.cssText = `
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                width: 10%;
+                height: 0;
+                border-radius: 50%;
+                padding-bottom: 10%;
+                background-color: rgb(255, 0, 0);
+                z-index: 0;
+            `;
+            let minW = 0;
+            let maxW = 100 - parseInt(malus.style.width.match(/(\d+)/)[0]);
+            malus.style.left = Math.floor(Math.random() * (maxW - minW)  + minW) + '%';
+            let min = 15;
+            let max = 80;
+            malus.style.top = Math.floor(Math.random() * (max - min)  + min) + '%';
+            malus.style.transform = 'translate(0, 0)';
+        
+            //Reload
+            randomNum = Math.floor(Math.random() * (3 - 1 + 1) + 1);
+            clearInterval(addTime);
+            addTime  = setInterval(winTime, initDifficulty * randomNum);
+            setTimeout(remove, 1500);
+            function remove(){
+                malus.remove();
+            }
+
+            malus.addEventListener('click', function () {
+                malus.remove();
+                lose();
+            });
+        }    
+    }
+    //
+    function winTime(){
+        if(score.value() != 0){
+            //Create Bonus
+            const bonus = document.createElement("bonus");
+            document.body.appendChild(bonus);
+            bonus.style.cssText = `
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                width: 10%;
+                height: 0;
+                border-radius: 50%;
+                padding-bottom: 10%;
+                background-color: rgb(255, 255, 0);
+                z-index: 1;
+            `;
+            let minW = 0;
+            let maxW = 100 - parseInt(bonus.style.width.match(/(\d+)/)[0]);
+            bonus.style.left = Math.floor(Math.random() * (maxW - minW)  + minW) + '%';
+            let min = 15;
+            let max = 80;
+            bonus.style.top = Math.floor(Math.random() * (max - min)  + min) + '%';
+            bonus.style.transform = 'translate(0, 0)';
+        
+            //Reload
+            randomNum = Math.floor(Math.random() * (3 - 1 + 1) + 1);
+            console.log(randomNum);
+            clearInterval(addTime);
+            addTime  = setInterval(winTime, initDifficulty * randomNum);
+            setTimeout(remove, 1500);
+            function remove(){
+                bonus.remove();
+            }
+
+            bonus.addEventListener('click', function () {
+                bonus.remove();
+                document.getElementById('progress').value = '100';
+                document.getElementById('progress').style.setProperty('--color', 'blue');
+                currentDifficulty = initDifficulty;
+                clearInterval(progress);
+                progress = setInterval(prgsDecr, currentDifficulty / 100);
+                clearInterval(interval);
+                interval = setInterval(lose, currentDifficulty);
+            });
+        }    
+    }
+
+    function prgsDecr(){
+        document.getElementById('progress').value --;
+    }
+
+    function lose(){
+        currentDifficulty = initDifficulty;
+        document.getElementById('score').innerText = 'Score: '+ score.value();
+        clearInterval(interval);
+        clearInterval(progress);
+        let scr = score.value();
+        for (let index = 0; index < scr; index++) {
+            score.decrement();
+        }
+        document.getElementById('textEn').innerHTML = 'Click here ! ';
+        textEn.style.color = 'rgb(255, 255, 255)';
+
+        //
+        let temporisation = 0.5;
+        document.getElementById('score').style.animation = 'shake ' + temporisation +'s' +' infinite';
+        setTimeout(function () {
+            document.getElementById('score').style.animation = '';
+        }, temporisation * 1000);
+
+    }
+    // Place element
+    content.addEventListener('click', game);
+
+    function game(){
+        var elementExists = document.getElementById("bonus");
+        console.log(elementExists);
+
+        currentDifficulty -= currentDifficulty * 0.1;
+        document.getElementById('progress').value = '100';
+        position(content);
+        changeColor();
+        score.increment();
+        document.getElementById('score').innerText = 'Score: '+ score.value();
+        clearInterval(progress);
+        progress = setInterval(prgsDecr, currentDifficulty / 100);
+        clearInterval(interval);
+        interval = setInterval(lose, currentDifficulty);
+        document.getElementById('textEn').innerText = '';
+        if(score.value() >= bestScore){
+            bestScore = score.value();
+            document.getElementById('bestScore').innerText = 'Best Score: '+ score.value();
+            let temporisation = 0.5;
+            document.getElementById('bestScore').style.animation = 'shake ' + temporisation +'s' +' infinite';
+            setTimeout(function () {
+                document.getElementById('bestScore').style.animation = '';
+            }, temporisation * 1000);          
+        }
+        // Color Bar
+        switch (true) {
+            case currentDifficulty >= initDifficulty * ( 2 / 3 ) &&  currentDifficulty <= initDifficulty:
+                document.getElementById('progress').style.setProperty('--color', 'blue');
+            break;
+            case currentDifficulty <= initDifficulty * ( 2 / 3 ) &&  currentDifficulty >= initDifficulty * ( 1 / 3):
+                document.getElementById('progress').style.setProperty('--color', 'orange');
+            break;
+            case currentDifficulty <= initDifficulty * ( 1 / 3 ):
+                document.getElementById('progress').style.setProperty('--color', 'red');
+                winTime();
+            break;
+            default:
+            break;
+        }
+    }
+    //
+    function position (box) {
+        let minW = 0;
+        let maxW = 100 - parseInt(box.style.width.match(/(\d+)/)[0]);
+        box.style.left = Math.floor(Math.random() * (maxW - minW)  + minW) + '%';
+        let min = 15;
+        let max = 100 - parseInt(box.style.height.match(/(\d+)/)[0]);
+        box.style.top = Math.floor(Math.random() * (max - min)  + min) + '%';
+        box.style.transform = 'translate(0, 0)';
+    }
+
+    function changeColor() {
+        content.style.backgroundColor = randomColor();
+        let sameColor = randomColor();
+        document.getElementById('bestScore').style.color = sameColor;
+        currentScore.style.color = sameColor;
+        content.style.borderColor = randomColor();
+        document.body.style.backgroundColor = randomColor();
+    }
+
+    function randomColor(){
+        let red = Math.floor(Math.random() * 256);
+        let green = Math.floor(Math.random() * 256);
+        let blue = Math.floor(Math.random() * 256);
+        let rgbCode = 'rgb(' + red + ',' + green + ',' + blue + ')';
+        return rgbCode;
+    }
+</script>
+</body>
+</html>
